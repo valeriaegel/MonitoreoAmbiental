@@ -85,26 +85,37 @@ void actualizarEstadoAmbiental(float temp, float humedad) {
 
 
 // FUNCIÓN PARA EL ENVÍO DE DATOS A FIREBASE
+// FUNCIÓN PARA EL ENVÍO DE DATOS A FIREBASE
 void enviarDatos(float temp, float hum) {
-  if (WiFi.status() == WL_CONNECTED) {
-    
-    // Crear un objeto JSON para enviar T y H juntos
-    FirebaseJson json;
-    json.set("temperatura", String(temp, 2)); // 2 decimales
-    json.set("humedad", String(hum, 2));     // 2 decimales
-    json.set("timestamp", String(millis())); // Opcional: marca de tiempo del ESP
+ if (WiFi.status() == WL_CONNECTED) {
+ 
+ FirebaseJson json;
+json.set("temperatura", temp); // 2 decimales
+ json.set("humedad", hum); 
+ json.set("timestamp", String(millis())); 
 
-    // Enviar el objeto JSON a un nodo llamado "/lecturas/actual"
-    // Esto sobrescribirá el valor anterior (Realtime)
-    if (Firebase.setJSON(firebaseData, "/lecturas/actual", json)) {
-      Serial.println("Firebase: Datos enviados correctamente (JSON set).");
-    } else {
-      Serial.print("Firebase: FALLÓ el envío de datos. Razón: ");
-      Serial.println(firebaseData.errorReason());
-    }
+// --- 1. Guardar el dato actual (sobrescribe) ---
+if (Firebase.setJSON(firebaseData, "/lecturas/actual", json)) { 
+   Serial.println("Firebase: Dato actual enviado correctamente (JSON set).");
   } else {
-    Serial.println("Firebase: WiFi desconectado. No se pudieron enviar los datos.");
-  }
+   Serial.print("Firebase: FALLÓ el envío del dato actual. Razón: ");
+  Serial.println(firebaseData.errorReason());
+}
+
+  // --- 2. Guardar el dato histórico (agrega un nuevo nodo) ---
+    // Usamos pushJSON para crear una clave única bajo el nodo "historial"
+   if (Firebase.pushJSON(firebaseData, "/lecturas/historial", json)) {
+   Serial.println("Firebase: Dato histórico guardado correctamente (JSON push).");
+      Serial.print("Ruta: ");
+      Serial.println(firebaseData.dataPath()); // Muestra la ruta generada (con el ID único)
+ } else {
+ Serial.print("Firebase: FALLÓ el guardado histórico. Razón: ");
+ Serial.println(firebaseData.errorReason());
+ }
+
+ } else {
+Serial.println("Firebase: WiFi desconectado. No se pudieron enviar los datos.");
+ }
 }
 
 
@@ -117,12 +128,10 @@ void setup() {
     WiFi.begin(SSID, PASSWORD);
     while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
-   Serial.println("Conectando a WiFi...");
+  // Serial.println("Conectando a WiFi...");
 }
 
 Serial.println("Conectado a WiFi!");
-Serial.print("Dirección IP: ");
-Serial.println(WiFi.localIP());
 
  // Configura el Host y el Secret
     firebaseConfig.host = FIREBASE_HOST;
@@ -163,7 +172,6 @@ void loop() {
   }
 
   //LOGICA PARA ENVIAR DATOS 
-  //ESTO SE DEBE DESARROLLAR
   // A. Reporte de Datos (Simulación de "OK GOOGLE, ¿Qué temperatura/humedad hace?")
   // En un entorno real, esta data se enviaría a una nube (Firebase/MQTT) que Google Assistant consultaría.
   
