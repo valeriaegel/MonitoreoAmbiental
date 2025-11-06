@@ -92,7 +92,7 @@ void enviarDatos(float temp, float hum) {
  FirebaseJson json;
 json.set("temperatura", temp); // 2 decimales
  json.set("humedad", hum); 
- json.set("timestamp", String(millis())); 
+ json.set("timestamp/.sv", "timestamp"); 
 
 // --- 1. Guardar el dato actual (sobrescribe) ---
 if (Firebase.setJSON(firebaseData, "/lecturas/actual", json)) { 
