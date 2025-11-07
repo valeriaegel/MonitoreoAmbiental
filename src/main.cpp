@@ -57,15 +57,22 @@ void setRgbColor(int red, int green, int blue) {
 //Funcion para manajera led RGB y buzzer
 void actualizarEstadoAmbiental(float temp, float humedad) {
   // Lógica de Alerta 
-  if (temp > TEMP_ALERTA) {
-    digitalWrite(BUZZER_PIN, HIGH);
-    Serial.println("ALERTA!! --> Temperatura alta");
-  } else if(humedad>60){
-    digitalWrite(BUZZER_PIN, HIGH);
-    Serial.println("ALERTA!! --> Humedad alta");
-  } else  {
-    digitalWrite(BUZZER_PIN, LOW);
-  }
+    if (temp > TEMP_ALERTA || humedad > 60.0) { 
+        digitalWrite(BUZZER_PIN, HIGH);
+        
+        // Diagnóstico mejorado
+        if (temp > TEMP_ALERTA && humedad > 60.0) {
+            Serial.println("ALERTA!! --> Temperatura y Humedad Extremas");
+        } else if (temp > TEMP_ALERTA) {
+            Serial.println("ALERTA!! --> Temperatura Alta");
+        } else {
+            Serial.println("ALERTA!! --> Humedad Alta");
+        }
+
+    } else  {
+        digitalWrite(BUZZER_PIN, LOW);
+    }
+
   
   // Lógica del LED RGB 
   if (temp > TEMP_ALERTA) { 
@@ -83,8 +90,6 @@ void actualizarEstadoAmbiental(float temp, float humedad) {
   }
 }
 
-
-// FUNCIÓN PARA EL ENVÍO DE DATOS A FIREBASE
 // FUNCIÓN PARA EL ENVÍO DE DATOS A FIREBASE
 void enviarDatos(float temp, float hum) {
  if (WiFi.status() == WL_CONNECTED) {
